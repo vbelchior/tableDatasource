@@ -1,5 +1,11 @@
-import { MatTableModule } from '@angular/material/table';
-import { Component, OnInit } from '@angular/core';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ChangeDetectorRef,
+  AfterViewInit,
+} from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router, ActivatedRoute, ParamMap } from '@angular/router';
 
@@ -8,144 +14,115 @@ import { PersonService } from '../person.service';
 import { PersonModel } from './person.model';
 import { PersonItem } from './personItem';
 import { MatSort } from '@angular/material/sort';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { MatPaginator } from '@angular/material/paginator';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+} from '@angular/animations';
 
-/**
- * @title Basic use of `<table mat-table>`
- */
+//const persons: PersonModel[] = [];
+
 @Component({
   selector: 'app-person',
   templateUrl: 'person.component.html',
   styleUrls: ['person.component.css'],
+  animations: [
+    trigger('detailExpand', [
+      state(
+        'collapsed',
+        style({ height: '0px', minHeight: '0', display: 'none' })
+      ),
+      state('expanded', style({ height: '*' })),
+      transition(
+        'expanded <=> collapsed',
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+      ),
+    ]),
+  ],
 })
-export class PersonComponent implements OnInit {
+export class PersonComponent implements OnInit, AfterViewInit {
   //public dataSource: PersonDataSource | null;
 
   public displayedColumns = ['name', 'age', 'gender', 'email'];
 
-  public PERSONS: PersonModel[];
+  public expandedElement: PersonModel;
 
-  public person: PersonModel;
+  public mytest: PersonModel[];
 
   public name: any;
 
-  private sort: MatSort;
+  public PERSONS: Array<PersonModel>;
+
+  public person: PersonModel;
 
   public test: any;
 
-  private subject: BehaviorSubject<PersonModel[]> = new BehaviorSubject<
-    PersonModel[]
+  private subject: BehaviorSubject<Array<PersonModel>> = new BehaviorSubject<
+    Array<PersonModel>
   >([]);
 
-  constructor(public personService: PersonService) {}
+  obs: Observable<any>;
+  dataSource = new MatTableDataSource<PersonModel>(this.mytest);
+
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+
+  @ViewChild(MatSort) sort: MatSort;
+  constructor(
+    public personService: PersonService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    //this.dataSource = new PersonDataSource(this.subject, this.sort);
-    this.getPersons();
-  }
-
-  public getPersons(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
     this.personService
       .retrieve()
-      .then((entities: Array<PersonModel>) => {
-        this.subject.next(new Array<PersonModel>());
-        for (let person of entities) {
-          this.PERSONS = this.subject.value.slice();
-          this.PERSONS.push(person);
-          this.subject.next(this.PERSONS);
-        }
+      .then((response: Array<PersonModel>) => {
+        this.mytest = response;
+        this.PERSONS = response;
+        this.dataSource.data = response;
       })
       .catch((error: any) => {
         console.error(error);
         this.showError('Falha ao recuperar nomes.');
       });
+
+    this.changeDetectorRef.detectChanges();
   }
+
+  ngAfterViewInit() {
+    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator;
+  }
+
+  applyFilter(filterValue: string) {
+    filterValue = filterValue.trim(); // Remove whitespace
+    filterValue = filterValue.toLowerCase(); // Datasource defaults to lowercase matches
+    this.dataSource.filter = filterValue;
+  }
+
   showError(arg0: string) {
     throw new Error('Method not implemented.');
   }
+
+  public doFilter = (value: string) => {
+    this.dataSource.filter = value.trim().toLocaleLowerCase();
+  };
+
+  /* public getPersons(): void {
+     this.personService
+       .retrieve()
+       .then((response: Array<PersonModel>) => {
+         this.PERSONS = response;
+         console.log(this.PERSONS);
+       })
+       .catch((error: any) => {
+         console.error(error);
+         this.showError('Falha ao recuperar nomes.');
+       });
+   }*/
 }
-/*
-const PERSONS: PersonModel[] = [
-  {
-    id: '1',
-    name: 'Victor',
-    age: 22,
-    gender: 'M',
-    email: 'victor@victor',
-  },
-  {
-    id: '2',
-    name: 'Jose',
-    age: 17,
-    gender: 'M',
-    email: 'jose@victor',
-  },
-  {
-    id: '3',
-    name: 'Josefina',
-    age: 65,
-    gender: 'F',
-    email: 'josefina@victor',
-  },
-  {
-    id: '4',
-    name: 'Gabriele',
-    age: 23,
-    gender: 'F',
-    email: 'gabriele@victor',
-  },
-  { id: '5', name: 'Magal', age: 35, gender: 'M', email: 'magal@victor' },
-  { id: '6', name: 'Thiago', age: 37, gender: 'M', email: 'thiago@victor' },
-  {
-    id: '7',
-    name: 'Alexandre',
-    age: 20,
-    gender: 'M',
-    email: 'alexandre@victor',
-  },
-  {
-    id: '8',
-    name: 'Carolina',
-    age: 15,
-    gender: 'F',
-    email: 'carolina@victor',
-  },
-  { id: '9', name: 'Ana Luisa', age: 22, gender: 'F', email: 'ana@victor' },
-  {
-    id: '10',
-    name: 'Patrick',
-    age: 45,
-    gender: 'M',
-    email: 'patrick@victor',
-  },
-  {
-    id: '11',
-    name: 'Viviane',
-    age: 38,
-    gender: 'F',
-    email: 'viviane@victor',
-  },
-  {
-    id: '12',
-    name: 'Paulo',
-    age: 22,
-    gender: 'M',
-    email: 'paulo@victor',
-  },
-  {
-    id: '13',
-    name: 'Raquel',
-    age: 72,
-    gender: 'F',
-    email: 'raquel@victor',
-  },
-  {
-    id: '14',
-    name: 'Luciana',
-    age: 30,
-    gender: 'F',
-    email: 'luciana@victor',
-  },
-  { id: '15', name: 'Vitor', age: 31, gender: 'M', email: 'vitor@victor' },
-];
-*/

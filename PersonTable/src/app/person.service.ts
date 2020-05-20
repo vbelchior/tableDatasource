@@ -42,7 +42,7 @@ export class PersonService {
   public retrieve(): Promise<PersonModel[]> {
     let path = 'http://localhost:3000/persons';
     return this.http
-      .get<Array<PersonModel>>(path)
+      .get<Array<PersonModel>>(path, this.httpOptions)
       .toPromise()
       .then((response) => {
         let personArray: Array<PersonModel> = new Array<PersonModel>();
