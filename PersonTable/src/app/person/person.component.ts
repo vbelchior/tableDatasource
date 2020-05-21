@@ -28,8 +28,64 @@ import {
 
 @Component({
   selector: 'app-person',
-  templateUrl: 'person.component.html',
-  styleUrls: ['person.component.css'],
+
+  template: `
+    <div>
+      <div fxLayout fxLayoutAlign="center center">
+        <mat-form-field fxFlex="40%">
+          <input
+            matInput
+            type="text"
+            (keyup)="doFilter($event.target.value)"
+            placeholder="Filter"
+          />
+        </mat-form-field>
+      </div>
+      <table mat-table [dataSource]="dataSource" matSort>
+        <ng-container matColumnDef="name">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            Name
+          </mat-header-cell>
+          <mat-cell *matCellDef="let person"> {{ person.name }} </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="age">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            Age
+          </mat-header-cell>
+          <mat-cell *matCellDef="let person"> {{ person.age }} </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="gender">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            Gender
+          </mat-header-cell>
+          <mat-cell *matCellDef="let person"> {{ person.gender }} </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="email">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            Email
+          </mat-header-cell>
+          <mat-cell *matCellDef="let person"> {{ person.email }} </mat-cell>
+        </ng-container>
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+      </table>
+      <mat-paginator [pageSize]="2" [pageSizeOptions]="[2, 4, 6, 10, 20]">
+      </mat-paginator>
+    </div>
+  `,
+
+  styles: [
+    `
+      table {
+        width: 100%;
+      }
+
+      th.mat-sort-header-sorted {
+        color: black;
+      }
+    `,
+  ],
+
   animations: [
     trigger('detailExpand', [
       state(
